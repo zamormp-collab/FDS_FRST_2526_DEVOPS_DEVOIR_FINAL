@@ -138,6 +138,12 @@ Créé pour le cours DevOps - Session 2025-2026
 
 ---
 
+## Etudiant
+
+Marc Philippe ZAMOR - Promotion CDWM - FRST 2025-2026
+
+---
+
 ## 📄 Licence
 
 MIT

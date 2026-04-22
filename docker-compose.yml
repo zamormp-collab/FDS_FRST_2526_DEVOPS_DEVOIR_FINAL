@@ -28,7 +28,7 @@ services:
     # Construire l'image à partir du Dockerfile
     build:
       context: .              # Dossier parent (où se trouve le Dockerfile)
-      dockerfile: ???         # Tâche: Quel est le chemin du Dockerfile?
+      dockerfile: Dockerfile        # Tâche: Quel est le chemin du Dockerfile?
 
     # Nom du conteneur (pour faciliter les tests/debug)
     # Conseil: Utilisez votre nom pour personnaliser
@@ -45,7 +45,7 @@ services:
     # Mappage des ports
     # Format: "port_externe:port_interne"
     ports:
-      - "???:???"              # Tâche: Mapper les ports
+      - "3000:3000"              # Tâche: Mapper les ports
 
     # Variables d'environnement (configuration du conteneur)
     environment:
@@ -53,14 +53,14 @@ services:
       
       # DATABASE_URL: Chaîne de connexion PostgreSQL
       # Important: L'hôte DOIT être le nom du service (pas localhost)
-      DATABASE_URL: ???        # Tâche: Construire connexion PostgreSQL
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-password}@db:5432/${DB_NAME:-expense_tracker}     # Tâche: Construire connexion PostgreSQL
       
       # Variables individuelles
-      DB_HOST: ???             # Tâche: Nom du service?
-      DB_PORT: ???             # Tâche: Port?
-      DB_NAME: ???             # Tâche: Nom base?
-      DB_USER: ???             # Tâche: Utilisateur?
-      DB_PASSWORD: ???         # Tâche: Mot de passe?
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-expense_tracker}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-password}
 
     # Attendre que PostgreSQL soit prêt
     depends_on:
@@ -72,7 +72,7 @@ services:
 
     # Réseau personnalisé (pour que les services se trouvent)
     networks:
-      - ???                     # Tâche: Nom du réseau?
+      - zamorexpensetracker-network
 
 
   # ====================================================================
@@ -80,34 +80,39 @@ services:
   # ====================================================================
   db:
     # Image Docker officielle PostgreSQL
-    image: ???                 # Tâche: Quelle variante PostgreSQL utiliser?
+    image: postgres:15-alpine              # Tâche: Quelle variante PostgreSQL utiliser?
                                # Conseil: Cherchez sur hub.docker.com
 
     # Nom du conteneur
-    container_name: expense-tracker-postgresql-marczamor        # Tâche: Nommez le conteneur PostgreSQL
+    container_name: expense-tracker-postgresql-marczamor      # Tâche: Nommez le conteneur PostgreSQL
+
+    # Mappage des ports pour accès local
+    ports:
+      - "5432:5432"
 
     # Configuration PostgreSQL
     environment:
       # Mot de passe du superutilisateur
       # Cette même valeur doit être utilisée dans DATABASE_URL
-      POSTGRES_PASSWORD: ???   # Tâche: Mot de passe?
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password} 
       
       # Nom de la base de données à créer
-      POSTGRES_DB: ???         # Tâche: Nom base données?
+      POSTGRES_DB: ${DB_NAME:-expense_tracker}
       
       # Utilisateur PostgreSQL par défaut
-      POSTGRES_USER: ???       # Tâche: Utilisateur PostgreSQL?
+      POSTGRES_USER: ${DB_USER:-postgres}
 
     # Volumes: Persistence des données
     # Un volume = stockage durable même si conteneur arrêté
     # Format: "nom_volume:chemin_dans_conteneur"
     volumes:
-      - ???:/var/lib/postgresql/data  # Tâche: Nom volume?
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql  # Tâche: Mapper le script d'initialisation
+      - db_data:/var/lib/postgresql/data  # Tâche: Nom volume?
 
     # Health check: Vérifie si PostgreSQL est prêt
     # Permet au service web de savoir quand se connecter
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d expense_tracker"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -117,7 +122,7 @@ services:
 
     # Réseau personnalisé
     networks:
-      - ???                     # Tâche: Même réseau que service web
+      - zamorexpensetracker-network
 
 
 # ============================================================================
@@ -126,7 +131,7 @@ services:
 # Volumes nommés: Stockage persistant pour les données de la base de données
 
 volumes:
-  ???:                         # Tâche: Définir volume (nom utilisé plus haut)?
+  db_data:                         # Tâche: Définir volume (nom utilisé plus haut)?
     driver: local
 
 
@@ -136,7 +141,7 @@ volumes:
 # Réseau personnalisé: Permet aux services de se communiquer par leurs noms
 
 networks:
-  ???:                         # Tâche: Nom du réseau (utilisé dans les services)?
+  zamorexpensetracker-network:
     driver: bridge
 
 
@@ -263,7 +268,7 @@ networks:
 # │ variable source : .env.docker (optionnel avec ?)                │
 # │ commande       : docker compose up                              │
 # │ résolution     : ${VAR} → cherche dans .env.docker + défaut     │
-# │ sécurité       : ⚠️ Fichier en local (risque si commité)       │
+# │ sécurité       : ⚠️ Fichier en local (risque si commité)        │
 # │ avantage       : Facile de tester avec différentes valeurs      │
 # │ note           : Si .env.docker existe → l'utilise              │
 # │                  Si .env.docker absent → utilise le défaut      │
@@ -275,8 +280,8 @@ networks:
 # │ variable source : GitHub Secrets + Variables (env: section)     │
 # │ commande        : docker compose up (même fichier!)             │
 # │ résolution      : .env.docker → pas trouvé (c'est bon!)         │
-# │                  ${VAR} → env vars du runner + défaut            │
-# │ sécurité        : ✅ .env.docker n'existe jamais (gitignore)   │
+# │                  ${VAR} → env vars du runner + défaut           │
+# │ sécurité        : ✅ .env.docker n'existe jamais (gitignore)    │
 # │                  ✅ Secrets JAMAIS exposés en plaintext         │
 # │ avantage        : Même code, configurations sécurisées          │
 # │ note            : GitHub Secrets injectés via env: du job       │
@@ -322,7 +327,7 @@ networks:
 #
 # ☐ Créer .env.docker à la racine du projet? 
 # ☐ Remplir DB_USER, DB_PASSWORD, DB_NAME avec vos valeurs?
-# ☐ Compléter les ??? dans ce fichier docker-compose.yml?
+# ☐ Compléter les '???' dans ce fichier docker-compose.yml?
 # ☐ Valider avec: docker compose config
 # ☐ Lancer avec: docker compose up -d
 # ☐ Vérifier: docker compose logs web

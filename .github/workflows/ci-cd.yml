@@ -268,7 +268,7 @@ jobs:
       # Flags disponibles: up, down, logs, ps
       # Module 7: Docker Compose — Orchestrer multi-conteneurs
       - name: Start services with docker compose
-        run: docker-compose up -d   # Tâche: Quelle commande + flags? Conseil: Démarrer en arrière-plan
+        run: docker compose up -d   # Tâche: Quelle commande + flags? Conseil: Démarrer en arrière-plan
       
       
       # ====================================================================

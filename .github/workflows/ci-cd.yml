@@ -111,7 +111,7 @@ jobs:
       # -t [nom:version] = Nommer et versionner l'image
       # . = Utiliser le répertoire courant comme contexte de build
       - name: Build Docker image
-        run: docker build -t expense-tracker-nodejs:marczamor .  # Tâche: Quelle commande pour construire l'image? 
+        run: docker build -t expense-tracker-nodejs-marczamor .  # Tâche: Quelle commande pour construire l'image? 
          
       
       # ====================================================================

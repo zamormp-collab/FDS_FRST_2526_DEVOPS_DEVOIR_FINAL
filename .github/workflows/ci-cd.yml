@@ -309,7 +309,7 @@ jobs:
       # Nettoyage: éviter de laisser des processus/ports actifs
       # Module 7: Gestion du cycle de vie docker-compose
       - name: Stop all services
-        run: docker-compose down -v  # Tâche: Quelle commande pour arrêter tous les services? 
+        run: docker compose down -v  # Tâche: Quelle commande pour arrêter tous les services? 
 
 
 

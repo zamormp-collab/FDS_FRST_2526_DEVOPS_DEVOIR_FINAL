@@ -62,7 +62,7 @@ jobs:
       #   - npm cache = réutiliser les dépendances téléchargées précédemment
       - uses: actions/setup-node@v4
         with:
-          node-version: 24  # Tâche: Quelle version Node.js? Conseil: Vérifiez .node-version ou package.json
+          node-version: 20  # Tâche: Quelle version Node.js? Conseil: Vérifiez .node-version ou package.json
           cache: npm         # Tâche: Quelle dépendance manager cacher? Conseil: npm, yarn, ou pnpm
       
       
